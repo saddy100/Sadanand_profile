@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Phone, MapPin, Linkedin, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { personalInfo } from '../data/mock';
+import Toast from './Toast';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -13,47 +14,47 @@ const Contact = () => {
     subject: '',
     message: ''
   });
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+  const [toast, setToast] = useState({ isVisible: false, message: '', type: 'success' });
 
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-    // Clear error when user starts typing
-    if (submitError) {
-      setSubmitError('');
-    }
+  };
+
+  const showToast = (message, type = 'success') => {
+    setToast({ isVisible: true, message, type });
+  };
+
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setSubmitError('');
     
     try {
       const response = await axios.post(`${API}/contact`, formData);
       
       if (response.data.success) {
-        setIsSubmitted(true);
+        showToast(response.data.message, 'success');
         console.log('Contact form submitted successfully:', response.data);
         
-        // Reset form after 5 seconds
-        setTimeout(() => {
-          setIsSubmitted(false);
-          setFormData({ name: '', email: '', subject: '', message: '' });
-        }, 5000);
+        // Reset form after success
+        setFormData({ name: '', email: '', subject: '', message: '' });
       }
     } catch (error) {
       console.error('Error submitting contact form:', error);
       
+      let errorMessage = 'Failed to send message. Please try again later.';
       if (error.response && error.response.data && error.response.data.detail) {
-        setSubmitError(error.response.data.detail);
-      } else {
-        setSubmitError('Failed to send message. Please try again later.');
+        errorMessage = error.response.data.detail;
       }
+      
+      showToast(errorMessage, 'error');
     } finally {
       setIsSubmitting(false);
     }
