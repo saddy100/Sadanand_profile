@@ -1,8 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Download, ExternalLink, MapPin, Calendar } from 'lucide-react';
 import { personalInfo } from '../data/mock';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 const Hero = () => {
+  const { trackSectionView } = useAnalytics();
+
+  useEffect(() => {
+    // Track hero section view
+    const cleanup = trackSectionView('hero');
+    return cleanup;
+  }, [trackSectionView]);
+
   return (
     <section id="hero" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 pt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
